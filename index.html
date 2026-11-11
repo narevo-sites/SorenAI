@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>SorenAI</title>
+
+<style>
+:root {
+  --bg:#050505;
+  --panel:#111114;
+  --border:#29292f;
+  --purple:#8955ff;
+  --text:#f5f5f7;
+  --muted:#92929d;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  height:100dvh;
+  overflow:hidden;
+}
+button,input,textarea { font:inherit; }
+button { cursor:pointer; }
+header {
+  height:65px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  border-bottom:1px solid #17171b;
+}
+.brand {
+  font-size:25px;
+  font-weight:750;
+  letter-spacing:-1px;
+}
+.brand span { color:var(--purple); }
+.icon-btn {
+  background:transparent;
+  border:0;
+  color:white;
+  font-size:25px;
+  padding:8px;
+}
+main {
+  height:calc(100dvh - 65px - 150px);
+  overflow-y:auto;
+  padding:22px 17px;
+}
+#welcome {
+  text-align:center;
+  margin-top:18vh;
+}
+#welcome h1 {
+  font-size:27px;
+  letter-spacing:-1px;
+}
+#welcome p { color:var(--muted); }
+#messages {
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.message {
+  max-width:88%;
+  padding:13px 16px;
+  border-radius:19px;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.user {
+  align-self:flex-end;
+  background:#24212f;
+}
+.ai {
+  align-self:flex-start;
+  background:#111114;
+  border:1px solid #222229;
+}
+.message img {
+  max-width:100%;
+  border-radius:12px;
+  margin-top:8px;
+}
+#composer-area {
+  position:absolute;
+  bottom:65px;
+  left:0;
+  right:0;
+  padding:12px 17px 8px;
+  background:linear-gradient(transparent,#050505 15%);
+}
+.composer {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--panel);
+  border:1px solid #34343b;
+  border-radius:30px;
+  padding:8px;
+  min-height:66px;
+}
+.circle {
+  width:48px;
+  height:48px;
+  flex-shrink:0;
+  border:0;
+  border-radius:50%;
+  background:#242429;
+  color:white;
+  font-size:23px;
+}
+#prompt {
+  flex:1;
+  min-width:0;
+  resize:none;
+  max-height:110px;
+  border:0;
+  outline:0;
+  color:white;
+  background:transparent;
+  padding:12px 3px;
+  font-size:16px;
+}
+#send {
+  background:var(--purple);
+  font-size:22px;
+}
+.tools {
+  display:flex;
+  gap:17px;
+  padding:12px 8px 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.tools button {
+  background:none;
+  border:0;
+  color:inherit;
+  padding:0;
+}
+footer {
+  position:absolute;
+  bottom:0;
+  height:65px;
+  width:100%;
+  border-top:1px solid #19191e;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#a98aff;
+}
+#status {
+  color:var(--muted);
+  font-size:12px;
+  text-align:center;
+  padding:8px;
+}
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10;
+  background:#000b;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal-box {
+  width:100%;
+  max-width:420px;
+  background:#141418;
+  border:1px solid #33333c;
+  border-radius:20px;
+  padding:20px;
+}
+.modal-box h2 { margin-top:0; }
+.modal-box input {
+  width:100%;
+  background:#09090c;
+  color:white;
+  border:1px solid #393942;
+  border-radius:11px;
+  padding:14px;
+  outline:none;
+}
+.modal-box button {
+  padding:12px 16px;
+  border:0;
+  border-radius:10px;
+  color:white;
+  background:var(--purple);
+}
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:18px;
+}
+.secondary { background:#303038 !important; }
+.small {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+#imageInput,#cameraInput { display:none; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <button class="icon-btn" id="menuBtn">☰</button>
+  <div class="brand">Soren<span>AI</span></div>
+  <button class="icon-btn" id="settingsBtn">⚙</button>
+</header>
+
+<main id="main">
+  <section id="welcome">
+    <h1>¿En qué podemos ayudarte?</h1>
+    <p>Tu espacio de inteligencia artificial.</p>
+  </section>
+  <div id="messages"></div>
+</main>
+
+<div id="composer-area">
+  <div class="composer">
+    <button class="circle" id="plusBtn">+</button>
+    <textarea id="prompt" rows="1" placeholder="Escribe un mensaje..."></textarea>
+    <button class="circle" id="micBtn">●</button>
+    <button class="circle" id="send">➤</button>
+  </div>
+
+  <div class="tools">
+    <button id="generateBtn">Crear imagen</button>
+    <button id="cameraBtn">Cámara</button>
+    <button id="galleryBtn">Galería</button>
+  </div>
+  <div id="status">Gemini listo para conectarse</div>
+</div>
+
+<footer>Chats</footer>
+
+<input type="file" id="imageInput" accept="image/*">
+<input type="file" id="cameraInput" accept="image/*" capture="environment">
+
+<div class="modal" id="settingsModal">
+  <div class="modal-box">
+    <h2>Configuración</h2>
+    <p class="small">Conexión exclusiva con Google Gemini.</p>
+
+    <label>API KEY de Gemini</label>
+    <input id="apiKeyInput" type="password"
+      placeholder="Pega tu API KEY aquí">
+
+    <p class="small">
+      Modelo de conversación: gemini-2.5-flash
+      <br>
+      Modelo de imágenes: gemini-3.1-flash-image
+    </p>
+
+    <div class="modal-actions">
+      <button class="secondary" id="closeSettings">Cancelar</button>
+      <button id="saveSettings">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =================================
+   CONFIGURACIÓN GEMINI
+================================= */
+
+const CONFIG = {
+  CHAT_MODEL: "gemini-2.5-flash",
+  IMAGE_MODEL: "gemini-3.1-flash-image",
+  API_URL: "https://generativelanguage.googleapis.com/v1beta/models/"
+};
+
+let API_KEY = localStorage.getItem("soren_gemini_key") || "";
+let conversation = [];
+let selectedImage = null;
+let recorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+/* =================================
+   ELEMENTOS
+================================= */
+
+const $ = id => document.getElementById(id);
+
+const promptBox = $("prompt");
+const messages = $("messages");
+const welcome = $("welcome");
+const statusBox = $("status");
+
+function setStatus(text) {
+  statusBox.textContent = text;
+}
+
+function showSettings() {
+  $("apiKeyInput").value = API_KEY;
+  $("settingsModal").style.display = "flex";
+}
+
+$("settingsBtn").onclick = showSettings;
+$("closeSettings").onclick = () => {
+  $("settingsModal").style.display = "none";
+};
+
+$("saveSettings").onclick = () => {
+  const key = $("apiKeyInput").value.trim();
+
+  if (!key) {
+    alert("Introduce tu API KEY de Gemini.");
+    return;
+  }
+
+  API_KEY = key;
+  localStorage.setItem("soren_gemini_key", key);
+  $("settingsModal").style.display = "none";
+  setStatus("API KEY guardada");
+};
+
+$("menuBtn").onclick = () => {
+  if (confirm("¿Quieres iniciar una conversación nueva?")) {
+    conversation = [];
+    messages.innerHTML = "";
+    welcome.style.display = "block";
+    setStatus("Conversación nueva");
+  }
+};
+
+/* =================================
+   INTERFAZ DE MENSAJES
+================================= */
+
+function addMessage(text, type, imageUrl = null) {
+  welcome.style.display = "none";
+
+  const div = document.createElement("div");
+  div.className = "message " + type;
+
+  const textNode = document.createElement("div");
+  textNode.textContent = text;
+  div.appendChild(textNode);
+
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    div.appendChild(img);
+  }
+
+  messages.appendChild(div);
+  $("main").scrollTop = $("main").scrollHeight;
+  return div;
+}
+
+function checkKey() {
+  if (!API_KEY) {
+    showSettings();
+    throw new Error("Primero configura tu API KEY de Gemini.");
+  }
+}
+
+/* =================================
+   CONEXIÓN GEMINI
+================================= */
+
+async function geminiRequest(model, contents, options = {}) {
+  checkKey();
+
+  const response = await fetch(
+    CONFIG.API_URL + model + ":generateContent",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": API_KEY
+      },
+      body: JSON.stringify({
+        contents,
+        generationConfig: options.generationConfig || {}
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.error?.message || "Error de conexión con Gemini."
+    );
+  }
+
+  return data;
+}
+
+function getParts(data) {
+  return data.candidates?.[0]?.content?.parts || [];
+}
+
+/* =================================
+   ENVIAR MENSAJES
+================================= */
+
+async function sendMessage(extraParts = []) {
+  const text = promptBox.value.trim();
+
+  if (!text && extraParts.length === 0) return;
+
+  try {
+    checkKey();
+
+    const parts = [
+      ...extraParts,
+      ...(text ? [{text}] : [])
+    ];
+
+    addMessage(text || "Archivo enviado", "user");
+    promptBox.value = "";
+    selectedImage = null;
+
+    conversation.push({
+      role: "user",
+      parts
+    });
+
+    setStatus("Gemini está pensando...");
+
+    const data = await geminiRequest(
+      CONFIG.CHAT_MODEL,
+      conversation
+    );
+
+    const answerParts = getParts(data);
+    const answer = answerParts
+      .filter(p => p.text)
+      .map(p => p.text)
+      .join("\n");
+
+    const imagePart = answerParts.find(
+      p => p.inlineData?.mimeType?.startsWith("image/")
+    );
+
+    if (!answer && !imagePart) {
+      throw new Error("Gemini no devolvió una respuesta.");
+    }
+
+    let imageUrl = null;
+
+    if (imagePart) {
+      imageUrl =
+        "data:" + imagePart.inlineData.mimeType +
+        ";base64," + imagePart.inlineData.data;
+    }
+
+    addMessage(answer || "Imagen recibida.", "ai", imageUrl);
+
+    conversation.push({
+      role: "model",
+      parts: answerParts
+    });
+
+    setStatus("Conectado a Gemini");
+  } catch (error) {
+    addMessage("Error: " + error.message, "ai");
+    setStatus("Error de conexión");
+  }
+}
+
+$("send").onclick = () => sendMessage();
+
+promptBox.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+});
+
+/* =================================
+   IMÁGENES: CÁMARA Y GALERÍA
+================================= */
+
+function fileToPart(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const base64 = reader.result.split(",")[1];
+
+      resolve({
+        inlineData: {
+          mimeType: file.type,
+          data: base64
+        }
+      });
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleImage(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+
+  try {
+    const part = await fileToPart(file);
+    selectedImage = part;
+    promptBox.value = promptBox.value || "Describe esta imagen.";
+    setStatus("Imagen preparada. Pulsa enviar.");
+  } catch {
+    setStatus("No se pudo cargar la imagen.");
+  }
+}
+
+$("galleryBtn").onclick = () => $("imageInput").click();
+$("cameraBtn").onclick = () => $("cameraInput").click();
+
+$("imageInput").onchange = async e => {
+  await handleImage(e.target.files[0]);
+  e.target.value = "";
+};
+
+$("cameraInput").onchange = async e => {
+  await handleImage(e.target.files[0]);
+  e.target.value = "";
+};
+
+$("plusBtn").onclick = () => $("imageInput").click();
+
+/* =================================
+   ENVÍO DE IMAGEN SELECCIONADA
+================================= */
+
+const originalSend = $("send").onclick;
+
+$("send").onclick = () => {
+  if (selectedImage) {
+    const image = selectedImage;
+    selectedImage = null;
+    sendMessage([image]);
+  } else {
+    originalSend();
+  }
+};
+
+/* =================================
+   GENERACIÓN DE IMÁGENES
+================================= */
+
+$("generateBtn").onclick = async () => {
+  const description = promptBox.value.trim();
+
+  if (!description) {
+    alert("Escribe cómo quieres que sea la imagen.");
+    return;
+  }
+
+  try {
+    checkKey();
+
+    addMessage("Crear imagen: " + description, "user");
+    promptBox.value = "";
+    setStatus("Generando imagen...");
+
+    const data = await geminiRequest(
+      CONFIG.IMAGE_MODEL,
+      [{
+        role: "user",
+        parts: [{text: description}]
+      }],
+      {
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"]
+        }
+      }
+    );
+
+    const parts = getParts(data);
+
+    const image = parts.find(
+      p => p.inlineData?.mimeType?.startsWith("image/")
+    );
+
+    const text = parts
+      .filter(p => p.text)
+      .map(p => p.text)
+      .join("\n");
+
+    if (!image) {
+      throw new Error(
+        text || "El modelo no devolvió una imagen. Comprueba el acceso al modelo."
+      );
+    }
+
+    const url =
+      "data:" + image.inlineData.mimeType +
+      ";base64," + image.inlineData.data;
+
+    addMessage(text || "Imagen generada.", "ai", url);
+    setStatus("Imagen generada");
+  } catch (error) {
+    addMessage("Error al crear imagen: " + error.message, "ai");
+    setStatus("No se pudo generar la imagen");
+  }
+};
+
+/* =================================
+   AUDIO: GRABACIÓN Y ENVÍO A GEMINI
+================================= */
+
+async function blobToWav(blob) {
+  const audioContext = new AudioContext();
+  const buffer = await audioContext.decodeAudioData(
+    await blob.arrayBuffer()
+  );
+
+  const sampleRate = 16000;
+  const ratio = buffer.sampleRate / sampleRate;
+  const samples = Math.floor(buffer.length / ratio);
+  const mono = new Float32Array(samples);
+
+  for (let i = 0; i < samples; i++) {
+    let total = 0;
+    let count = 0;
+    const start = Math.floor(i * ratio);
+    const end = Math.min(Math.floor((i + 1) * ratio), buffer.length);
+
+    for (let j = start; j < end; j++) {
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        total += buffer.getChannelData(c)[j];
+        count++;
+      }
+    }
+
+    mono[i] = count ? total / count : 0;
+  }
+
+  const wav = new ArrayBuffer(44 + samples * 2);
+  const view = new DataView(wav);
+
+  function writeString(offset, value) {
+    for (let i = 0; i < value.length; i++) {
+      view.setUint8(offset + i, value.charCodeAt(i));
+    }
+  }
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + samples * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, samples * 2, true);
+
+  for (let i = 0; i < samples; i++) {
+    const value = Math.max(-1, Math.min(1, mono[i]));
+    view.setInt16(
+      44 + i * 2,
+      value < 0 ? value * 32768 : value * 32767,
+      true
+    );
+  }
+
+  await audioContext.close();
+  return new Blob([wav], {type:"audio/wav"});
+}
+
+$("micBtn").onclick = async () => {
+  if (isRecording) {
+    recorder.stop();
+    $("micBtn").textContent = "●";
+    isRecording = false;
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+
+    audioChunks = [];
+    recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable = e => {
+      if (e.data.size) audioChunks.push(e.data);
+    };
+
+    recorder.onstop = async () => {
+      stream.getTracks().forEach(track => track.stop());
+
+      try {
+        setStatus("Procesando audio...");
+        const blob = new Blob(audioChunks, {
+          type: recorder.mimeType
+        });
+
+        const wav = await blobToWav(blob);
+        const part = await fileToPart(wav);
+
+        await sendMessage([
+          {text:"Transcribe este audio y responde según lo que se solicita."},
+          part
+        ]);
+      } catch (error) {
+        addMessage("Error de audio: " + error.message, "ai");
+        setStatus("No se pudo procesar el audio");
+      }
+    };
+
+    recorder.start();
+    isRecording = true;
+    $("micBtn").textContent = "■";
+    setStatus("Grabando audio... Pulsa el botón para terminar.");
+  } catch (error) {
+    alert("No se pudo acceder al micrófono. Revisa los permisos.");
+  }
+};
+
+/* =================================
+   INICIO
+================================= */
+
+if (API_KEY) {
+  setStatus("API KEY configurada");
+} else {
+  setStatus("Configura tu API KEY en Ajustes");
+}
+</script>
+
+</body>
+</html>
