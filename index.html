@@ -1,0 +1,1026 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>SorenAI</title>
+
+<style>
+:root {
+  --bg:#ffffff;
+  --surface:#f7f7fa;
+  --surface2:#f0eff5;
+  --border:#e9e7ef;
+  --text:#20202a;
+  --muted:#858493;
+  --purple:#7952e8;
+  --purple-dark:#6239d0;
+  --orange:#f39a43;
+  --green:#219b70;
+  --shadow:0 5px 25px #25203a0b;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Arial,sans-serif;
+}
+button,input,textarea {font:inherit}
+button {cursor:pointer}
+button:disabled {opacity:.5;cursor:not-allowed}
+
+header {
+  height:67px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  border-bottom:1px solid var(--border);
+  background:#ffffffee;
+  position:relative;
+  z-index:2;
+}
+.header-left {
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+.brand {
+  font-size:25px;
+  font-weight:800;
+  letter-spacing:-1.2px;
+}
+.brand span {color:var(--purple)}
+.icon-button {
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  border-radius:13px;
+  color:var(--text);
+  font-size:23px;
+}
+.icon-button:active {background:var(--surface2)}
+
+#main {
+  height:calc(100dvh - 67px - 158px);
+  overflow-y:auto;
+  padding:22px 17px 30px;
+  scroll-behavior:smooth;
+}
+#welcome {
+  max-width:540px;
+  margin:17vh auto 0;
+  text-align:center;
+}
+#welcome .welcome-mark {
+  width:54px;
+  height:54px;
+  margin:0 auto 19px;
+  display:grid;
+  place-items:center;
+  border-radius:18px;
+  color:white;
+  background:linear-gradient(140deg,var(--purple),#a18aff);
+  font-weight:800;
+  font-size:25px;
+  box-shadow:0 8px 22px #7952e82c;
+}
+#welcome h1 {
+  font-size:27px;
+  letter-spacing:-1px;
+  margin:0 0 9px;
+}
+#welcome p {
+  color:var(--muted);
+  font-size:14px;
+  margin:0;
+}
+.suggestions {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:28px;
+}
+.suggestion {
+  padding:15px;
+  text-align:left;
+  background:white;
+  border:1px solid var(--border);
+  border-radius:15px;
+  color:var(--text);
+  font-size:13px;
+  box-shadow:var(--shadow);
+}
+.suggestion strong {
+  display:block;
+  margin-bottom:5px;
+}
+.suggestion span {color:var(--muted)}
+
+#messages {
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  max-width:850px;
+  margin:auto;
+}
+.message {
+  max-width:91%;
+  padding:13px 16px;
+  border-radius:18px;
+  line-height:1.65;
+  font-size:15px;
+  overflow-wrap:anywhere;
+}
+.user {
+  align-self:flex-end;
+  background:#eee9ff;
+  border:1px solid #e3d9ff;
+  border-bottom-right-radius:5px;
+}
+.ai {
+  align-self:flex-start;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-bottom-left-radius:5px;
+}
+.message strong {font-weight:750}
+.message code {
+  background:#e9e6f0;
+  border-radius:5px;
+  padding:2px 5px;
+  font-size:.9em;
+}
+.message pre {
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  background:#e9e6f0;
+  padding:12px;
+  border-radius:10px;
+}
+.message img {
+  display:block;
+  max-width:100%;
+  border-radius:12px;
+  margin-top:10px;
+}
+.typing {
+  display:flex;
+  gap:5px;
+  align-items:center;
+  padding:12px;
+}
+.typing i {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--purple);
+  animation:blink 1s infinite alternate;
+}
+.typing i:nth-child(2) {animation-delay:.2s}
+.typing i:nth-child(3) {animation-delay:.4s}
+@keyframes blink {
+  from {opacity:.25;transform:translateY(0)}
+  to {opacity:1;transform:translateY(-4px)}
+}
+
+#composer-area {
+  position:absolute;
+  bottom:64px;
+  left:0;
+  right:0;
+  padding:12px 16px 8px;
+  background:linear-gradient(transparent,#fff 12%);
+  z-index:2;
+}
+.composer {
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  padding:8px;
+  border:1px solid #e2deeb;
+  background:white;
+  border-radius:23px;
+  box-shadow:0 5px 25px #25203a0d;
+  max-width:900px;
+  margin:auto;
+}
+.circle {
+  width:43px;
+  height:43px;
+  flex-shrink:0;
+  border:0;
+  border-radius:15px;
+  background:var(--surface2);
+  color:var(--text);
+  font-size:21px;
+}
+#prompt {
+  flex:1;
+  min-width:0;
+  max-height:120px;
+  resize:none;
+  outline:none;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:12px 4px;
+  font-size:15px;
+}
+#prompt::placeholder {color:#a09eaa}
+#send {
+  background:var(--purple);
+  color:white;
+  font-size:20px;
+  border-radius:15px;
+}
+#send:active {background:var(--purple-dark)}
+#micBtn.recording {
+  background:#ffe9e9;
+  color:#d84c4c;
+}
+.tools {
+  display:flex;
+  gap:19px;
+  max-width:900px;
+  margin:11px auto 0;
+  padding:0 7px;
+  font-size:13px;
+}
+.tools button {
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:3px 0;
+}
+.tools button:hover {color:var(--purple)}
+#status {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  color:var(--muted);
+  font-size:11px;
+  padding-top:9px;
+}
+.status-dot {
+  width:7px;
+  height:7px;
+  background:var(--green);
+  border-radius:50%;
+}
+footer {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:64px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-top:1px solid var(--border);
+  background:white;
+}
+.footer-tab {
+  color:var(--purple);
+  font-size:14px;
+  font-weight:650;
+}
+
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10;
+  background:#17132155;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal-box {
+  width:100%;
+  max-width:430px;
+  background:white;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 15px 60px #17132130;
+}
+.modal-box h2 {
+  margin:0 0 7px;
+  font-size:21px;
+}
+.modal-box p {
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.modal-box label {
+  display:block;
+  font-size:13px;
+  font-weight:650;
+  margin:18px 0 8px;
+}
+.modal-box input {
+  width:100%;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface);
+  outline:none;
+  color:var(--text);
+}
+.modal-box input:focus {
+  border-color:var(--purple);
+}
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:9px;
+  margin-top:20px;
+}
+.action {
+  padding:12px 17px;
+  border:0;
+  border-radius:11px;
+  background:var(--purple);
+  color:white;
+  font-weight:650;
+}
+.secondary {
+  background:var(--surface2);
+  color:var(--text);
+}
+#imageInput,#cameraInput {display:none}
+
+@media(max-width:390px) {
+  .brand {font-size:23px}
+  .tools {gap:13px;font-size:12px}
+  .message {font-size:14px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-left">
+    <button class="icon-button" id="newChat" aria-label="Nuevo chat">☰</button>
+    <div class="brand">Soren<span>AI</span></div>
+  </div>
+  <button class="icon-button" id="settingsBtn" aria-label="Configuración">⚙</button>
+</header>
+
+<main id="main">
+  <section id="welcome">
+    <div class="welcome-mark">S</div>
+    <h1>¿En qué podemos ayudarte?</h1>
+    <p>Una nueva forma de explorar tus ideas.</p>
+
+    <div class="suggestions">
+      <button class="suggestion" data-prompt="Explícame cómo funciona la inteligencia artificial.">
+        <strong>Aprender</strong>
+        <span>Descubre algo nuevo</span>
+      </button>
+      <button class="suggestion" data-prompt="Ayúdame a desarrollar una aplicación desde cero.">
+        <strong>Crear</strong>
+        <span>Desarrolla tus proyectos</span>
+      </button>
+      <button class="suggestion" data-prompt="Dame ideas originales para un proyecto tecnológico.">
+        <strong>Ideas</strong>
+        <span>Explora posibilidades</span>
+      </button>
+      <button class="suggestion" data-prompt="Ayúdame a resolver un problema paso a paso.">
+        <strong>Resolver</strong>
+        <span>Encuentra soluciones</span>
+      </button>
+    </div>
+  </section>
+
+  <div id="messages"></div>
+</main>
+
+<div id="composer-area">
+  <div class="composer">
+    <button class="circle" id="plusBtn" aria-label="Adjuntar">+</button>
+    <textarea id="prompt" rows="1" placeholder="Escribe un mensaje..."></textarea>
+    <button class="circle" id="micBtn" aria-label="Grabar audio">●</button>
+    <button class="circle" id="send" aria-label="Enviar">➤</button>
+  </div>
+
+  <div class="tools">
+    <button id="imageBtn">Crear imagen</button>
+    <button id="cameraBtn">Cámara</button>
+    <button id="galleryBtn">Galería</button>
+  </div>
+
+  <div id="status">
+    <span class="status-dot"></span>
+    <span id="statusText">Gemini no configurado</span>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-tab">Chats</div>
+</footer>
+
+<input id="imageInput" type="file" accept="image/*">
+<input id="cameraInput" type="file" accept="image/*" capture="environment">
+
+<div class="modal" id="settingsModal">
+  <div class="modal-box">
+    <h2>Configuración</h2>
+    <p>Configura la conexión de SorenAI con Google Gemini.</p>
+
+    <label for="apiKey">API KEY de Gemini</label>
+    <input id="apiKey" type="password" placeholder="Pega tu API KEY">
+
+    <p>Modelo de chat: gemini-3.8-flash</p>
+    <p>Modelo de imágenes: gemini-3.1-flash-image</p>
+
+    <div class="modal-actions">
+      <button class="action secondary" id="cancelSettings">Cancelar</button>
+      <button class="action" id="saveSettings">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================
+   CONFIGURACIÓN GOOGLE GEMINI
+===================================== */
+
+const CONFIG = {
+  CHAT_MODEL: "gemini-3.8-flash",
+  IMAGE_MODEL: "gemini-3.1-flash-image",
+  API_BASE: "https://generativelanguage.googleapis.com/v1beta"
+};
+
+let apiKey = localStorage.getItem("soren_gemini_key") || "";
+let history = [];
+let attachedImage = null;
+let recorder = null;
+let audioChunks = [];
+let recording = false;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+const main = $("main");
+const messages = $("messages");
+const welcome = $("welcome");
+const promptBox = $("prompt");
+
+/* =====================================
+   ESTADO
+===================================== */
+
+function setStatus(message, connected = true) {
+  $("statusText").textContent = message;
+  document.querySelector(".status-dot").style.background =
+    connected ? "#219b70" : "#e39a43";
+}
+
+function checkKey() {
+  if (!apiKey) {
+    openSettings();
+    throw new Error("Primero configura tu API KEY de Gemini.");
+  }
+}
+
+function setBusy(value) {
+  busy = value;
+  $("send").disabled = value;
+  $("imageBtn").disabled = value;
+}
+
+/* =====================================
+   AJUSTES
+===================================== */
+
+function openSettings() {
+  $("apiKey").value = apiKey;
+  $("settingsModal").style.display = "flex";
+}
+
+$("settingsBtn").onclick = openSettings;
+
+$("cancelSettings").onclick = () => {
+  $("settingsModal").style.display = "none";
+};
+
+$("saveSettings").onclick = () => {
+  const value = $("apiKey").value.trim();
+
+  if (!value) {
+    alert("Introduce una API KEY válida.");
+    return;
+  }
+
+  apiKey = value;
+  localStorage.setItem("soren_gemini_key", apiKey);
+
+  $("settingsModal").style.display = "none";
+  setStatus("Clave de Gemini configurada");
+};
+
+/* =====================================
+   MENSAJES Y FORMATO
+===================================== */
+
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+function formatText(text) {
+  let safe = escapeHTML(text);
+
+  safe = safe.replace(/```([\s\S]*?)```/g,
+    "<pre>$1</pre>");
+
+  safe = safe.replace(/`([^`]+)`/g,
+    "<code>$1</code>");
+
+  safe = safe.replace(/\*\*(.*?)\*\*/g,
+    "<strong>$1</strong>");
+
+  safe = safe.replace(/\*(.*?)\*/g,
+    "<em>$1</em>");
+
+  return safe.replace(/\n/g, "<br>");
+}
+
+function addMessage(text, type, image = null) {
+  welcome.style.display = "none";
+
+  const div = document.createElement("div");
+  div.className = "message " + type;
+
+  const content = document.createElement("div");
+  content.innerHTML = formatText(text);
+  div.appendChild(content);
+
+  if (image) {
+    const img = document.createElement("img");
+    img.src = image;
+    img.alt = "Imagen";
+    div.appendChild(img);
+  }
+
+  messages.appendChild(div);
+  main.scrollTop = main.scrollHeight;
+
+  return div;
+}
+
+function addTyping() {
+  welcome.style.display = "none";
+
+  const div = document.createElement("div");
+  div.className = "message ai";
+  div.innerHTML =
+    '<div class="typing"><i></i><i></i><i></i></div>';
+
+  messages.appendChild(div);
+  main.scrollTop = main.scrollHeight;
+
+  return div;
+}
+
+function addImageToMessage(container, data, mime) {
+  const img = document.createElement("img");
+  img.src = "data:" + mime + ";base64," + data;
+  img.alt = "Imagen generada";
+  container.appendChild(img);
+}
+
+/* =====================================
+   PETICIONES A GEMINI
+===================================== */
+
+async function geminiFetch(url, body) {
+  checkKey();
+
+  const response = await fetch(url, {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-goog-api-key":apiKey
+    },
+    body:JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    let errorMessage = "Error HTTP " + response.status;
+
+    try {
+      const error = await response.json();
+      errorMessage = error.error?.message || errorMessage;
+    } catch {}
+
+    throw new Error(errorMessage);
+  }
+
+  return response;
+}
+
+/* =====================================
+   STREAMING: RESPUESTA PROGRESIVA
+===================================== */
+
+async function streamGemini(contents, output) {
+  const url =
+    CONFIG.API_BASE +
+    "/models/" +
+    CONFIG.CHAT_MODEL +
+    ":streamGenerateContent?alt=sse";
+
+  const response = await geminiFetch(url, {
+    contents,
+    generationConfig:{
+      temperature:0.7,
+      maxOutputTokens:2048
+    }
+  });
+
+  if (!response.body) {
+    throw new Error("El navegador no permite recibir streaming.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let buffer = "";
+  let fullText = "";
+
+  while (true) {
+    const {value, done} = await reader.read();
+
+    if (done) break;
+
+    buffer += decoder.decode(value, {stream:true});
+
+    const events = buffer.split(/\r?\n\r?\n/);
+    buffer = events.pop() || "";
+
+    for (const event of events) {
+      const line = event
+        .split(/\r?\n/)
+        .find(item => item.startsWith("data:"));
+
+      if (!line) continue;
+
+      const raw = line.slice(5).trim();
+      if (!raw || raw === "[DONE]") continue;
+
+      try {
+        const data = JSON.parse(raw);
+        const parts =
+          data.candidates?.[0]?.content?.parts || [];
+
+        for (const part of parts) {
+          if (part.text) {
+            fullText += part.text;
+            output.innerHTML = formatText(fullText);
+            main.scrollTop = main.scrollHeight;
+          }
+        }
+      } catch {}
+    }
+  }
+
+  return fullText;
+}
+
+/* =====================================
+   CHAT
+===================================== */
+
+async function sendMessage(extraParts = []) {
+  if (busy) return;
+
+  const text = promptBox.value.trim();
+
+  if (!text && extraParts.length === 0) return;
+
+  try {
+    checkKey();
+    setBusy(true);
+
+    const parts = [
+      ...extraParts,
+      ...(text ? [{text}] : [])
+    ];
+
+    addMessage(text || "Archivo enviado", "user");
+
+    promptBox.value = "";
+    attachedImage = null;
+
+    history.push({
+      role:"user",
+      parts
+    });
+
+    // Limitar el historial para evitar peticiones enormes.
+    if (history.length > 16) {
+      history = history.slice(-16);
+    }
+
+    setStatus("Gemini está respondiendo...");
+
+    const responseDiv = addTyping();
+    const output = responseDiv.querySelector("div");
+
+    const answer = await streamGemini(history, output);
+
+    if (!answer.trim()) {
+      throw new Error("Gemini no devolvió texto.");
+    }
+
+    history.push({
+      role:"model",
+      parts:[{text:answer}]
+    });
+
+    setStatus("Conectado a Gemini");
+
+  } catch (error) {
+    addMessage("No se pudo completar la solicitud: " + error.message, "ai");
+    setStatus("Revisar conexión", false);
+  } finally {
+    setBusy(false);
+  }
+}
+
+$("send").onclick = () => {
+  if (attachedImage) {
+    const image = attachedImage;
+    attachedImage = null;
+    sendMessage([image]);
+  } else {
+    sendMessage();
+  }
+};
+
+promptBox.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    $("send").click();
+  }
+});
+
+$("newChat").onclick = () => {
+  if (!confirm("¿Iniciar una conversación nueva?")) return;
+
+  history = [];
+  messages.innerHTML = "";
+  promptBox.value = "";
+  attachedImage = null;
+  welcome.style.display = "block";
+  setStatus("Conversación nueva");
+};
+
+/* =====================================
+   SUGERENCIAS
+===================================== */
+
+document.querySelectorAll(".suggestion").forEach(button => {
+  button.onclick = () => {
+    promptBox.value = button.dataset.prompt;
+    promptBox.focus();
+  };
+});
+
+/* =====================================
+   IMÁGENES: CÁMARA Y GALERÍA
+===================================== */
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+      resolve(result.split(",")[1]);
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function prepareImage(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Selecciona una imagen.");
+    return;
+  }
+
+  if (file.size > 8 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Prueba con una más pequeña.");
+    return;
+  }
+
+  try {
+    attachedImage = {
+      inlineData:{
+        mimeType:file.type,
+        data:await fileToBase64(file)
+      }
+    };
+
+    promptBox.value =
+      promptBox.value || "Describe esta imagen.";
+
+    setStatus("Imagen preparada para Gemini");
+  } catch {
+    setStatus("No se pudo cargar la imagen", false);
+  }
+}
+
+$("plusBtn").onclick = () => $("galleryInput").click();
+$("galleryBtn").onclick = () => $("imageInput").click();
+$("cameraBtn").onclick = () => $("cameraInput").click();
+
+$("imageInput").onchange = async event => {
+  await prepareImage(event.target.files[0]);
+  event.target.value = "";
+};
+
+$("cameraInput").onchange = async event => {
+  await prepareImage(event.target.files[0]);
+  event.target.value = "";
+};
+
+/* =====================================
+   GENERACIÓN DE IMÁGENES
+   GEMINI INTERACTIONS API
+===================================== */
+
+$("imageBtn").onclick = async () => {
+  const prompt = promptBox.value.trim();
+
+  if (!prompt || busy) {
+    if (!prompt) alert("Describe la imagen que quieres crear.");
+    return;
+  }
+
+  try {
+    checkKey();
+    setBusy(true);
+
+    addMessage("Crear imagen: " + prompt, "user");
+    promptBox.value = "";
+    setStatus("Generando imagen...");
+
+    const response = await geminiFetch(
+      CONFIG.API_BASE + "/interactions",
+      {
+        model:CONFIG.IMAGE_MODEL,
+        input:prompt,
+        response_format:[
+          {type:"text"},
+          {type:"image"}
+        ]
+      }
+    );
+
+    const data = await response.json();
+
+    const output = data.output_image;
+
+    let imageData = output?.data;
+    let mimeType = output?.mime_type || "image/png";
+
+    if (!imageData && data.steps) {
+      for (const step of data.steps) {
+        for (const item of (step.content || [])) {
+          if (item.type === "image") {
+            imageData = item.data;
+            mimeType = item.mime_type || mimeType;
+            break;
+          }
+        }
+        if (imageData) break;
+      }
+    }
+
+    if (!imageData) {
+      throw new Error(
+        data.error?.message ||
+        "No se recibió una imagen. Comprueba el acceso al modelo."
+      );
+    }
+
+    const div = addMessage("Imagen generada con Gemini.", "ai");
+    addImageToMessage(div, imageData, mimeType);
+
+    setStatus("Imagen generada correctamente");
+
+  } catch (error) {
+    addMessage("Error al generar la imagen: " + error.message, "ai");
+    setStatus("Error de generación", false);
+  } finally {
+    setBusy(false);
+  }
+};
+
+/* =====================================
+   GRABACIÓN DE AUDIO
+===================================== */
+
+$("micBtn").onclick = async () => {
+  if (recording) {
+    recorder.stop();
+    recording = false;
+    $("micBtn").classList.remove("recording");
+    $("micBtn").textContent = "●";
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    alert("Tu navegador no permite grabar audio en esta página.");
+    return;
+  }
+
+  try {
+    const stream =
+      await navigator.mediaDevices.getUserMedia({audio:true});
+
+    audioChunks = [];
+
+    recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable = event => {
+      if (event.data.size) audioChunks.push(event.data);
+    };
+
+    recorder.onstop = async () => {
+      stream.getTracks().forEach(track => track.stop());
+
+      try {
+        const blob = new Blob(audioChunks, {
+          type:recorder.mimeType
+        });
+
+        const audio = await fileToBase64(blob);
+
+        await sendMessage([
+          {
+            text:"Transcribe este audio y responde a lo que se solicita."
+          },
+          {
+            inlineData:{
+              mimeType:blob.type,
+              data:audio
+            }
+          }
+        ]);
+
+      } catch (error) {
+        addMessage("Error de audio: " + error.message, "ai");
+        setStatus("Error procesando audio", false);
+      }
+    };
+
+    recorder.start();
+    recording = true;
+
+    $("micBtn").classList.add("recording");
+    $("micBtn").textContent = "■";
+
+    setStatus("Grabando audio...");
+
+  } catch {
+    alert("No se pudo acceder al micrófono. Revisa los permisos.");
+  }
+};
+
+/* =====================================
+   INICIO
+===================================== */
+
+if (apiKey) {
+  setStatus("API KEY configurada");
+} else {
+  setStatus("Configura tu API KEY de Gemini", false);
+}
+</script>
+
+</body>
+</html>
